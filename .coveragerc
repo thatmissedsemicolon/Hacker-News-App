@@ -1,0 +1,12 @@
+[run]
+include = tests/*
+omit =
+    */.venv/*
+    */auth/*
+    */database/*
+    */db-backups/*
+    */middleware/*
+    */routes/*
+    */templates/*
+    */user/*
+   

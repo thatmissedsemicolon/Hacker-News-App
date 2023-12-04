@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1f2937">
+    <meta name="color-scheme" content="dark-light">
+    <meta name="msapplication-TileColor" content="#1f2937">
+    <title>Admin | Python Server</title>
+    <link rel="apple-touch-icon" href="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900">
+    <div class="flex h-screen">
+        <div class="w-64 bg-gray-800 p-4 pt-6 flex flex-col justify-between">
+            <div>
+                <a href="/" class="text-white text-2xl font-bold">
+                    <img src="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg" alt="Company Logo" class="w-8 h-8 inline-block mr-2">
+                    Python Server
+                </a>
+                
+                <ul class="pt-10">
+                    <li class="mb-2">
+                        <a href="{{ url_for('routes.admin_news_items') }}" class="text-gray-300 hover:text-white hover:bg-gray-700 p-2 block rounded">
+                            <i class="mr-2"></i>News items
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('routes.admin_view_all_users') }}" class="text-gray-300 hover:text-white hover:bg-gray-700 p-2 block rounded">
+                            <i class="mr-2"></i>Manage Users
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('routes.list_backups') }}" class="text-gray-300 hover:text-white hover:bg-gray-700 p-2 block rounded">
+                            <i class="mr-2"></i>Backup Database
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{{ url_for('routes.home') }}" class="text-gray-300 hover:text-white hover:bg-gray-700 p-2 block rounded">
+                            <i class="mr-2"></i>User View
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="pb-4 flex flex-wrap items-center gap-2 bg-gray-900 rounded-md px-4 py-2">
+                {% if session %}
+                    <a href="{{ url_for('routes.get_profile') }}" class="text-gray-300 hover:text-white flex items-center">
+                        <img src="{{ session.userinfo.picture }}" alt="User Profile Image" class="w-8 h-8 rounded-full ml-2">
+                    </a>
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name=G" alt="User Profile Image" class="w-8 h-8 rounded-full ml-2">
+                {% endif %}
+                <span class="text-gray-300 hover:text-white">
+                    {% if session %}
+                        {{ session.userinfo.nickname }}
+                    {% else %}
+                        Guest
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto">
+            {% if request.endpoint == 'routes.admin_news_items' %}
+                <div class="flex flex-wrap gap-5 justify-center items-center mt-4">
+                    <form action="{{ url_for('routes.admin_news_items') }}" method="post">
+                        <input type="hidden" name="sort_order" value="all">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">All News</button>
+                    </form>
+                    
+                    <form action="{{ url_for('routes.admin_news_items') }}" method="post">
+                        <input type="hidden" name="sort_order" value="liked">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Liked News</button>
+                    </form>
+                    
+                    <form action="{{ url_for('routes.admin_news_items') }}" method="post">
+                        <input type="hidden" name="sort_order" value="disliked">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Disliked News</button>
+                    </form>
+                </div>
+
+                <table class="min-w-full bg-white mt-8">
+                    <thead>
+                        <tr>
+                            <th class="py-2 border-b border-gray-200 bg-gray-100">News Title</th>
+                            <th class="py-2 border-b border-gray-200 bg-gray-100">Related Keywords</th>
+                            <th class="py-2 border-b border-gray-200 bg-gray-100">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts.items %}
+                            <tr class="bg-gray-100">
+                                <td class="py-2 px-4 border-b border-gray-200">{{ post.title }}</td>
+                                <td class="py-2 px-4 border-b border-gray-200">{{ post.keywords }}</td>
+                                <td class="flex flex-col justify-center items-center py-2 px-4 border-b border-gray-200">
+                                    <form action="{{ url_for('routes.admin_view_reactions_users', post_id=post.id) }}" method="post">
+                                        <button class="ml-4 text-green-500 hover:underline">Reactions</button>
+                                    </form>
+                                    <form action="{{ url_for('routes.admin_delete_post', post_id=post.id) }}" method="post">
+                                        <button class="text-red-500 hover:underline">Delete</button>
+                                    </form>
+                                    <a href="{{ url_for('routes.admin_edit_post', post_id=post.id) }}" class="ml-4 text-blue-500 hover:underline">Edit</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="flex flex-row justify-center items-center mb-10 mt-4">
+                    <span class="mx-2 text-md font-normal text-gray-100">Page {{ posts.page }} of {{ posts.pages }}</span>
+
+                    {% if posts.has_prev %}
+                       <a href="{{ url_for('routes.admin_news_items', page=posts.prev_num) }}" class="px-3 py-1 bg-blue-500 text-white rounded">Previous</a>
+                    {% endif %}
+                    
+                    {% if posts.has_next %}
+                       <a href="{{ url_for('routes.admin_news_items', page=posts.next_num) }}" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Next</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% if request.endpoint == 'routes.admin_edit_post' %}
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 mt-10">
+                    <div class="flex justify-between items-center mb-4">
+                        <h1 class="text-2xl font-bold">Edit Post</h1>
+                        <a href="{{ url_for('routes.admin_news_items') }}" class="text-blue-500 hover:underline">Back to News Items</a>
+                    </div>
+                    <form method="post" action="{{ url_for('routes.admin_edit_post', post_id=post.id) }}">
+                        <div class="mb-4">
+                            <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                            <input type="text" name="title" id="title" value="{{ post.title }}" class="border mt-1 p-2 w-full rounded-md">
+                        </div>
+                        <div class="mb-4">
+                            <label for="by" class="block text-sm font-medium text-gray-700">By</label>
+                            <input type="text" name="by" id="by" value="{{ post.by }}" class="border mt-1 p-2 w-full rounded-md">
+                        </div>
+                        <div class="mb-4">
+                            <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+                            <input type="text" name="type" id="type" value="{{ post.type }}" class="border mt-1 p-2 w-full rounded-md">
+                        </div>
+                        <div class="mb-4">
+                            <label for="score" class="block text-sm font-medium text-gray-700">Score</label>
+                            <input type="text" name="score" id="score" value="{{ post.score }}" class="border mt-1 p-2 w-full rounded-md">
+                        </div>
+                        <div class="mb-4">
+                            <label for="url" class="block text-sm font-medium text-gray-700">Url</label>
+                            <input type="text" name="url" id="url" value="{{ post.url }}" class="border mt-1 p-2 w-full rounded-md">
+                        </div>
+
+                        <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Update</button>
+                    </form>
+                </div>
+            {% endif %}
+            {% if request.endpoint == 'routes.admin_view_reactions_users' %}
+                <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                    <div class="px-4 py-6 sm:px-0">
+                        <div class="flex justify-between items-center mb-4">
+                            <h1 class="text-2xl font-semibold text-gray-100">Users who reacted to this post</h1>
+                            <a href="{{ url_for('routes.admin_news_items') }}" class="text-blue-500 hover:underline">Back to News Items</a>
+                        </div>
+            
+                        <div class="mt-6">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Reaction
+                                        </th>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Remove Reaction
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for email, reaction in users %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {{ email }} 
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {{ reaction }}
+                                            </td>
+                                            <td>
+                                                <form action="{{ url_for('routes.admin_remove_user_reaction', post_id=post_id) }}" method="post">
+                                                    <input type="hidden" name="email" value="{{ email }}" />
+                                                    <input type="hidden" name="reaction" value="{{ reaction }}" />
+                                                    <button class="px-6 py-4 text-red-500 hover:underline">Remove</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if request.endpoint == 'routes.admin_view_all_users' %}
+                <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                    <div class="px-4 py-6 sm:px-0">
+                        <div class="flex justify-between items-center mb-4">
+                            <h1 class="text-2xl font-semibold text-gray-100">List of all users</h1>
+                            <a href="{{ url_for('routes.admin_news_items') }}" class="text-blue-500 hover:underline">Back to News Items</a>
+                        </div>
+            
+                        <div class="mt-6">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Username
+                                        </th>
+                                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Delete User
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for user in users.items %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {{ user.email }} 
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {{ user.user_id }}
+                                            </td>
+                                            <td>
+                                                <form action="{{ url_for('routes.admin_delete_user') }}" method="post">
+                                                    <input type="hidden" name="email" value="{{ user.email }}" />
+                                                    <button class="px-6 py-4 text-red-500 hover:underline">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="flex flex-row justify-center items-center mb-10 mt-4">
+                                <span class="mx-2 text-md font-normal text-gray-100">Page {{ users.page }} of {{ users.pages }}</span>
+
+                                {% if users.has_prev %}
+                                   <a href="{{ url_for('routes.admin_view_all_users', page=users.prev_num) }}" class="px-3 py-1 bg-blue-500 text-white rounded">Previous</a>
+                                {% endif %}
+                                
+                                {% if users.has_next %}
+                                   <a href="{{ url_for('routes.admin_view_all_users', page=users.next_num) }}" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Next</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if request.endpoint == 'routes.list_backups' %}
+                <div class="container mx-auto mt-10 px-4">
+                    <h2 class="text-3xl font-bold mb-6 text-white">Past Backups</h2>
+                    <table class="min-w-full bg-white border rounded">
+                        <thead class="bg-gray-800 text-white">
+                            <tr>
+                                <th class="w-1/4 py-2 px-4 border">ID</th>
+                                <th class="w-1/2 py-2 px-4 border">Backup File</th>
+                                <th class="w-1/4 py-2 px-4 border">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            {% for backup in backups %}
+                            <tr>
+                                <td class="py-2 px-4 border">{{ backup.id }}</td>
+                                <td class="py-2 px-4 border">{{ backup.backup_file_path }}</td>
+                                <td class="py-2 px-4 border">{{ backup.timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <form action="/admin/create_backup" method="post" class="mt-6">
+                        <input type="submit" value="Create Backup" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded cursor-pointer">
+                    </form>
+
+                    <div class="flex flex-row justify-center items-center mb-10 mt-4">
+                        <span class="mx-2 text-md font-normal text-gray-100">Page {{ backups.page }} of {{ backups.pages }}</span>
+
+                        {% if backups.has_prev %}
+                           <a href="{{ url_for('routes.list_backups', page=backups.prev_num) }}" class="px-3 py-1 bg-blue-500 text-white rounded">Previous</a>
+                        {% endif %}
+                        
+                        {% if backups.has_next %}
+                           <a href="{{ url_for('routes.list_backups', page=backups.next_num) }}" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Next</a>
+                        {% endif %}
+                    </div>
+                </div>            
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+image: ubuntu:latest  # Ubuntu runner
+
+stages:
+  - setup
+  - test
+  - deploy
+
+before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan -p "$SSH_PORT" "$SSH_DOMAIN_NAME" >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - bash setup.sh ubuntu && bash setup.sh install      # Start the bash script to install necessary dependencies
+
+setup_environment:
+  stage: setup   
+  script: 
+    # Activate the environment
+    - . .venv/bin/activate
+    
+    # Run the server using Gunicorn
+    - gunicorn -w 3 app:app &
+    - PID=$!
+    - sleep 5
+    - kill $PID
+
+  timeout: 5m
+  allow_failure: false
+
+test:
+  stage: test
+  script:
+    # Run tests with pylint
+    - bash setup.sh pylint
+
+    # Run tests with pytest using coverage
+    - bash setup.sh coverage
+
+    # Checks the lynis score for the ubuntu (server)
+    - ssh "$SSH_USER"@"$SSH_DOMAIN_NAME" -p "$SSH_PORT" 'bash -c "cd lynis && sudo ./lynis audit system"'
+
+  timeout: 10m
+  allow_failure: false
+
+deploy:
+  stage: deploy
+  script:
+    - ssh "$SSH_USER"@"$SSH_DOMAIN_NAME" -p "$SSH_PORT" "bash -s" < setup.sh deploy
+
+  timeout: 10m
+  allow_failure: false

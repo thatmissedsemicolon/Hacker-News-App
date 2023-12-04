@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1f2937">
+    <meta name="color-scheme" content="dark light">
+    <meta name="msapplication-TileColor" content="#1f2937">
+    <title>About Page | Python Server</title>
+    <link rel="apple-touch-icon" href="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900">
+    <nav class="bg-gray-800 p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <a href="/" class="text-white text-2xl font-bold">
+                <img src="https://cdn.auth0.com/styleguide/1.0.0/img/badge.svg" alt="Company Logo" class="w-8 h-8 inline-block mr-2">
+                Python Server
+            </a>
+            <div class="space-x-4">
+                <a href="{{ url_for('routes.home') }}" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">Home</a>
+            
+                <a href="/about" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">About</a>
+
+                {% if not session %}
+                    <a href="{{ url_for('routes.signin') }}" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">Sign in</a>
+                    <a href="{{ url_for('routes.signup') }}" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">Sign Up</a>
+                {% endif %}
+            
+                {% if session %}
+                    <a href="{{ url_for('routes.get_profile') }}" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">Profile</a>
+                    {% if user_role == 'admin' %}
+                        <a href="{{ url_for('routes.admin_news_items') }}" class="text-gray-300 hover:text-white hover:underline hover:underline-offset-4">Admin</a>
+                    {% endif %}
+                {% endif %}
+            </div>                
+            <div class="flex items-center">
+                <span class="ml-2 text-gray-300 hover:text-white">
+                    Welcome,
+                    {% if session %}
+                        {{ session.userinfo.nickname }}
+                    {% else %}
+                        Guest
+                    {% endif %}
+                </span>  
+                {% if session %}
+                    <a href="{{ url_for('routes.get_profile') }}" class="text-gray-300 hover:text-white flex items-center">
+                        <img src="{{ session.userinfo.picture }}" alt="User Profile Image" class="w-12 h-12 rounded-full ml-2">
+                    </a>
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name=G" alt="User Profile Image" class="w-12 h-12 rounded-full ml-2">
+                {% endif %}
+            </div>                
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto mt-16 px-4">
+        <section class="bg-gray-800 p-6 rounded-lg text-gray-100 mb-8">
+            <h2 class="text-3xl font-semibold mb-4">About the Project</h2>
+            <p>
+                This web application is built using Flask, a web framework for Python. It's hosted on a Linode server and managed with Gunicorn, a Python WSGI server. The application is further optimized with Nginx for handling client requests efficiently.
+            </p>
+            <p class="mt-4">
+                One of the core features of this project is to integrate the Hacker News API. This allows our users to view the latest news and intereact with news for example like and dislike the news in a user-friendly interface. User authentication is managed through Auth0, providing a secure and seamless login experience.
+            </p>
+            <p class="mt-4">
+                Admin view has ability to view all the news items, see which user interacted with the news, view related keywords from the title, ability to delete the news, edit the news, back up the database.
+            </p>
+            <div class="mt-4">
+                <span class="text-2xl font-semibold">Some technologies used to develop -</span>
+                <ul class="list-disc list-inside">
+                    <li><strong>Python, Flask, Gunicorn, Nginx, Certbot</strong> – powering & serving the website</li>
+                    <li><strong>Auth0</strong> – User authentication</li>
+                    <li><strong>HTML, Tailwind CSS</strong> - for markup and structure with responsive and modern styling.</li>
+                    <li><strong>SQLite3, SQLAlchemy, Flask-SQLAlchemy</strong> – Database management</li>
+                    <li><strong>Python-dotenv</strong> - managing virtual environments</li>
+                    <li><strong>pytest, pylint, coverage</strong> – testing</li>
+                    <li><strong>Mozilla Observatory, UFW, SSH, Ubuntu</strong> – security and updates</li>
+                    <li><strong>Linode</strong> – hosting the server</li>
+                    <li><strong>GitLab</strong> – source code hosting</li>
+                </ul>
+            </div>
+        </section>
+    </main> 
+</body>

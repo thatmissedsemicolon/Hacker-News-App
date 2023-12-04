@@ -1,0 +1,5 @@
+[MASTER]
+ignore=.venv,__pycache__,.pytest_cache
+
+[MESSAGES CONTROL]
+disable=R0903, W0611, W0613, R0801, R0904
